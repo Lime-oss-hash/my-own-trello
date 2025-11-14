@@ -3,7 +3,7 @@ import { Column, Board } from "@/lib/supabase/models";
 import { SupabaseClient } from "@supabase/supabase-js";
 // Server side requires await, but the client doesn't need it
 // const supabase = createClient();
-export const boardSevices = {
+export const boardService = {
     async getBoards(supabase: SupabaseClient, userId: string): Promise<Board[]> {
         const { data, error } = await supabase
             .from('boards')
@@ -56,7 +56,7 @@ export const boardDataService = {
     }): Promise<Board> {
         
 
-       const board = await boardSevices.createBoard(supabase, {
+       const board = await boardService.createBoard(supabase, {
         title: boardData.title,
         description: boardData.description || null,
         color: boardData.color || 'bg-blue-500',
@@ -76,6 +76,7 @@ export const boardDataService = {
             columnServices.createColumn(supabase, {
                 ...column,
                 board_id: board.id,
+                user_id: boardData.userId
             })
         })
        )
