@@ -6,6 +6,7 @@ import { useBoards } from "@/lib/hooks/useBoards";
 import { useUser } from "@clerk/nextjs";
 import { Loader2, Plus, Trello } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Rocket } from "lucide-react";
 
 
 export default function DashboardPage() {
@@ -81,8 +82,21 @@ export default function DashboardPage() {
                   }
                   </p>
                 </div>
-                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Trello className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  📊  
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active Projects</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{boards.length}</p>
+                </div>
+                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Rocket className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                 </div>
               </div>
             </CardContent>
@@ -101,6 +115,21 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
          
+        </div>
+
+        {/* Boards */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+            <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your Boards</h2>
+            <p className="text-gray-600">Manage your projects and tasks</p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center mb-4 sm:mb-6 space-y-2 sm:space-y-0">
+              <div className="flex items-center space-x-2 bg-white border p-1">
+
+              </div>
+            </div>
+          </div>
         </div>
 
       </main>
