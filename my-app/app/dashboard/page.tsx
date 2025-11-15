@@ -4,14 +4,18 @@ import Navbar from "@/components/ui/navbar";
 import { Button } from "@/components/ui/button";
 import { useBoards } from "@/lib/hooks/useBoards";
 import { useUser } from "@clerk/nextjs";
-import { Loader2, Plus, Trello } from "lucide-react";
+import { Filter, List, Loader2, Plus, Search, Trello } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Rocket } from "lucide-react";
+import { Grid3x3 } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 
 export default function DashboardPage() {
   const { user } = useUser();
   const { createBoard, boards, loading, error } = useBoards();
+  const[viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const handleCreateBoard = async () => {
     await createBoard({ title: "New Board" });
@@ -127,11 +131,37 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center mb-4 sm:mb-6 space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-2 bg-white border p-1">
 
+                <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("grid")}>
+                  <Grid3x3 />
+                </Button>
+
+                 <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("list")}>
+                  <List />
+                </Button>
               </div>
+
+              <Button variant="outline" size="sm">
+                <Filter />
+                Filter
+              </Button>
+
+              <Button onClick={handleCreateBoard}>
+                <Plus />
+                Create Board
+                </Button>
             </div>
           </div>
-        </div>
+          {/* search board */}
+          <div className="relative mb-4 sm:mb-6">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input id="search" placeholder="Search boards..." className="pl-10"/>
+          </div>
 
+          {/* Boards Grid/List */}
+          {boards.length === 0 ? (
+            <div>No Boards yet</div>
+          ) : viewMode === "grid" ? (<div></div>) : (<div></div>)}
+          </div>
       </main>
     </div>
   );
