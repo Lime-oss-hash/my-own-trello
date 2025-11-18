@@ -1,7 +1,9 @@
 "use client";
 import Navbar from "@/components/navbar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useBoard } from "@/lib/hooks/useBoards";
+import { Label } from "@radix-ui/react-label";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -18,14 +20,30 @@ export default function BoardPage() {
         <Navbar 
         boardTitle={board?.title} 
         onEditBoard={() => {
+            setNewTitle(board?.title ?? "")
+            setNewColor(board?.color ?? "")
             setIsEditingTitle(true);
         }}
         />
         
 
         <Dialog open={isEditngTitle} onOpenChange={setIsEditingTitle}>
-            <DialogContent>
-                
+            <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
+                <DialogHeader>
+                    <DialogTitle>Edit Board</DialogTitle>
+                </DialogHeader>
+                <form>
+                    <div>
+                        <Label>Board Title</Label>
+                        <Input 
+                        id="boardTitle" 
+                        value={newTitle}
+                        placeholder="Enter board title..." 
+                        required
+                        />
+                    </div>
+
+                </form>
             </DialogContent>
         </Dialog>
     </div>
