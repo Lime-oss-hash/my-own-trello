@@ -74,9 +74,9 @@ export default function BoardPage() {
                   "bg-teal-500",
                   "bg-cyan-500",
                   "bg-emerald-500",
-                ].map((color) => (
+                ].map((color, key) => (
                   <button
-                    key={color}
+                    key={key}
                     type="button"
                     className={`w-8 h-8 rounded-full ${color} ${
                       color === newColor
