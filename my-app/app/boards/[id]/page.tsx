@@ -150,6 +150,9 @@ export default function BoardPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Board Content */}
+      
     </div>
   );
 }
