@@ -3,12 +3,13 @@ import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useBoard } from "@/lib/hooks/useBoards";
 import { Label } from "@radix-ui/react-label";
 import { Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState } from "react"; 
 
 export default function BoardPage() {
   const { id } = useParams<{ id: string }>();
@@ -138,7 +139,6 @@ export default function BoardPage() {
               </div>          
             </div> */}
 
-
             <div className="space-y-2">
               <Label>Due Date</Label>
               <Input type="date" />
@@ -148,27 +148,26 @@ export default function BoardPage() {
               <Button type="button" variant={"outline"}>Clear Filters</Button>
               <Button type="button" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
             </div>
-
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Board Content */}
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:p[y-6">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
         {/* Stats */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <div className="text-sm text-gray-600">
-              <span className="font-medium">Total Tasks:</span>
+              <span className="font-medium">Total Tasks: </span>
               {columns.reduce((sum, col) => sum + col.tasks.length, 0)}
             </div>
           </div>
 
           {/* Add task dialog */}
           <Dialog>
-            <DialogTrigger>
-              <Button className="w-fall sm:w-auto">
-                <Plus />
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
                 Add Task
               </Button>
             </DialogTrigger>
@@ -176,32 +175,44 @@ export default function BoardPage() {
             <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
               <DialogHeader>
                 <DialogTitle>Create New Task</DialogTitle>
-                <p>Add a new task to your board</p>
+                <p className="text-sm text-gray-600">Add a new task to your board</p>
               </DialogHeader>
 
-              <form>
+              <form className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Title *</Label>
-                  <Input id="title" name="title" placeholder="Enter task title"/>
+                  <Label htmlFor="title">Title *</Label>
+                  <Input id="title" name="title" placeholder="Enter task title" required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea id="description" name="description" placeholder="Enter task description" rows={3}/>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea id="description" name="description" placeholder="Enter task description" rows={3} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Assignee</Label>
-                  <Input id="assignee" name="assignee" placeholder="Who should do this?"/>
+                  <Label htmlFor="assignee">Assignee</Label>
+                  <Input id="assignee" name="assignee" placeholder="Who should do this?" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Priority *</Label>
-                  <Input id="priority" name="priority" placeholder="Enter task priority"/>
+                  <Label htmlFor="priority">Priority *</Label>
+                  <Select name="priority" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button type="button" variant="outline">Cancel</Button>
+                  <Button type="submit">Create Task</Button>
                 </div>
               </form>
             </DialogContent>
           </Dialog>
         </div>
       </main>
-      
     </div>
   );
 }
