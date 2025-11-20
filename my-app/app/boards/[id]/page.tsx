@@ -135,6 +135,18 @@ export default function BoardPage() {
                 ))}
               </div>          
             </div> */}
+
+
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Input type="date" />
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Button type="button" variant={"outline"}>Clear Filters</Button>
+              <Button type="button" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+            </div>
+
           </div>
         </DialogContent>
       </Dialog>
