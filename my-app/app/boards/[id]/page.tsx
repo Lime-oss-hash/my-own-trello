@@ -38,6 +38,8 @@ export default function BoardPage() {
           setNewColor(board?.color ?? "");
           setIsEditingTitle(true);
         }}
+        onFilterClick={() => {}}
+        filterCount={2}
       />
 
       <Dialog open={isEditingTitle} onOpenChange={setIsEditingTitle}>

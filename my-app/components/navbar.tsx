@@ -1,23 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { Trello, ArrowRight, ArrowLeft, MoreHorizontal } from "lucide-react";
+import { Trello, ArrowRight, ArrowLeft, MoreHorizontal, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, useUser, UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
+import { Badge } from "./ui/badge";
 
-interface Props{
+interface Props {
   boardTitle?: string;
   onEditBoard?: () => void;
+
+  onFilterClick?: () => void;
+  filterCount?: number;
 }
-export default function Navbar({boardTitle, onEditBoard}: Props) {
+
+export default function Navbar({
+  boardTitle,
+  onEditBoard,
+  onFilterClick,
+  filterCount = 0,
+}: Props) {
   const { isSignedIn, user } = useUser();
   const pathname = usePathname();
   const isDashboardPage = pathname === "/dashboard";
-  const isBoardPage = pathname.startsWith("/boards");
+  const isBoardPage = pathname.startsWith("/boards/");
 
-
-if (isDashboardPage) {
+  if (isDashboardPage) {
     return (
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
@@ -27,7 +36,7 @@ if (isDashboardPage) {
               Trello Clone
             </span>
           </div>
-
+          
           <div className="flex items-center space-x-2 sm:space-x-4">
             <UserButton />
           </div>
@@ -51,19 +60,32 @@ if (isDashboardPage) {
               <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
                 <Trello className="text-blue-600" />
                 <div className="items-center space-x-1 sm:space-x-2 min-w-0">
-                <span className="text-lg font-bold text-gray-900 truncate">{boardTitle}</span>
-                {onEditBoard && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 flex-shrink-0 p-0"
-                    onClick={onEditBoard}
-                  >
-                    <MoreHorizontal />
-                  </Button>
-                )}
+                  <span className="text-lg font-bold text-gray-900 truncate">{boardTitle}</span>
+                  {onEditBoard && (
+                    <Button variant="ghost" size="sm" className="h-7 w-7 flex-shrink-0 p-0" onClick={onEditBoard}>
+                      <MoreHorizontal />
+                    </Button>
+                  )}
+                </div>
               </div>
-              </div>
+            </div>
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+              {onFilterClick && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`text-xs sm:text-sm ${filterCount > 0 ? "bg-blue-100 border-blue-200" : ""}`}
+                  onClick={onFilterClick}
+                >
+                  <Filter className="h-3 w-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Filter</span>
+                  {filterCount > 0 && (
+                    <Badge variant="secondary" className="text-xs ml-1 sm:ml-2 bg-blue-100 border-blue-200">
+                      {filterCount}
+                    </Badge>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -82,16 +104,12 @@ if (isDashboardPage) {
           {isSignedIn ? (
             isDashboardPage ? (
               <div className="flex items-center space-x-3">
-                <span className="hidden sm:inline text-sm text-gray-600">
-                  Welcome, {user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress}
-                </span>
+                <span className="hidden sm:inline text-sm text-gray-600">Welcome, {user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress}</span>
                 <UserButton afterSignOutUrl="/" />
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <span className="hidden sm:inline text-sm text-gray-600">
-                  Welcome, {user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress}
-                </span>
+                <span className="hidden sm:inline text-sm text-gray-600">Welcome, {user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress}</span>
                 <Link href="/dashboard">
                   <Button size="sm" className="text-xs sm:text-sm">
                     Dashboard <ArrowRight />
