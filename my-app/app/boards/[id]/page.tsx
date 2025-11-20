@@ -1,10 +1,12 @@
 "use client";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useBoard } from "@/lib/hooks/useBoards";
 import { Label } from "@radix-ui/react-label";
+import { Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -152,15 +154,51 @@ export default function BoardPage() {
       </Dialog>
 
       {/* Board Content */}
-      <main>
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:p[y-6">
         {/* Stats */}
-        <div>
-          <div>
-            <div>
-              <span>Total Tasks:</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">Total Tasks:</span>
               {columns.reduce((sum, col) => sum + col.tasks.length, 0)}
             </div>
           </div>
+
+          {/* Add task dialog */}
+          <Dialog>
+            <DialogTrigger>
+              <Button className="w-fall sm:w-auto">
+                <Plus />
+                Add Task
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Task</DialogTitle>
+                <p>Add a new task to your board</p>
+              </DialogHeader>
+
+              <form>
+                <div className="space-y-2">
+                  <Label>Title *</Label>
+                  <Input id="title" name="title" placeholder="Enter task title"/>
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea id="description" name="description" placeholder="Enter task description" rows={3}/>
+                </div>
+                <div className="space-y-2">
+                  <Label>Assignee</Label>
+                  <Input id="assignee" name="assignee" placeholder="Who should do this?"/>
+                </div>
+                <div className="space-y-2">
+                  <Label>Priority *</Label>
+                  <Input id="priority" name="priority" placeholder="Enter task priority"/>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </main>
       
