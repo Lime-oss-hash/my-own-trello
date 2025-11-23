@@ -72,6 +72,36 @@ export const boardService = {
     if (error) throw error;
     return data;
   },
+
+  async createColumn(
+    supabase: SupabaseClient,
+    column: Omit<Column, "id" | "created_at">
+  ): Promise<Column> {
+    const { data, error } = await supabase
+      .from("columns")
+      .insert(column)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async updateColumn(
+    supabase: SupabaseClient,
+    columnId: string,
+    updates: Partial<Column>
+  ): Promise<Column> {
+    const { data, error } = await supabase
+      .from("columns")
+      .update(updates)
+      .eq("id", columnId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };
 
 export const columnService = {

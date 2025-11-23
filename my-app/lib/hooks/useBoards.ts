@@ -1,10 +1,9 @@
 "use client";
-import { boardDataService, taskService } from "@/lib/services";
+import { boardDataService, taskService, boardService } from "@/lib/services";
 import { useUser } from "@clerk/nextjs";
 import { Board, ColumnWithTasks, Task } from "../supabase/models";
 import { useEffect, useState } from "react";
 import { useSupabase } from "../supabase/SupabaseProvider";
-import { boardService } from "@/lib/services";
 
 export function useBoards() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -37,7 +36,12 @@ export function useBoards() {
       setBoards(data);
     } catch (err) {
       console.error("loadBoards error:", err);
-      const errorMessage = err instanceof Error ? err.message : (typeof err === 'object' ? JSON.stringify(err) : String(err));
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : typeof err === "object"
+          ? JSON.stringify(err)
+          : String(err);
       setError(errorMessage || "Failed to load boards.");
     } finally {
       setLoading(false);
@@ -74,6 +78,7 @@ export function useBoards() {
 
 export function useBoard(boardId: string) {
   const { supabase } = useSupabase();
+  const { user } = useUser();
   const [board, setBoard] = useState<Board | null>(null);
   const [columns, setColumns] = useState<ColumnWithTasks[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +97,10 @@ export function useBoard(boardId: string) {
     try {
       setLoading(true);
       setError(null);
-      const data = await boardDataService.getBoardWithColumns(supabase!, boardId);
+      const data = await boardDataService.getBoardWithColumns(
+        supabase!,
+        boardId
+      );
       setBoard(data.board);
       setColumns(data.columnsWithTasks);
     } catch (err) {
@@ -133,16 +141,21 @@ export function useBoard(boardId: string) {
         assignee: taskData.assignee || null,
         due_date: taskData.dueDate || null,
         column_id: columnId,
-        sort_order: 
-          columns.find(col => col.id === columnId)?.tasks.length || 0,
+        sort_order:
+          columns.find((col) => col.id === columnId)?.tasks.length || 0,
         priority: taskData.priority || "medium",
       });
 
-      setColumns((prev) => prev.map((col) => col.id === columnId ? {
-        ...col,
-        tasks: [...col.tasks, newTask],
-      } : col
-      ));
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === columnId
+            ? {
+                ...col,
+                tasks: [...col.tasks, newTask],
+              }
+            : col
+        )
+      );
 
       return newTask;
     } catch (err) {
@@ -150,20 +163,23 @@ export function useBoard(boardId: string) {
     }
   }
 
-
-  async function moveTask(taskId: string, newColumnId: string, newOrder: number) {
+  async function moveTask(
+    taskId: string,
+    newColumnId: string,
+    newOrder: number
+  ) {
     try {
       await taskService.moveTask(supabase!, taskId, newColumnId, newOrder);
-      
+
       setColumns((prev) => {
-        const newColumns = [...prev]
+        const newColumns = [...prev];
 
         // Find and remove task from the old column
         let taskToMove: Task | null = null;
         for (const col of newColumns) {
           const taskIndex = col.tasks.findIndex((task) => task.id === taskId);
           if (taskIndex !== -1) {
-            taskToMove = col.tasks [taskIndex];
+            taskToMove = col.tasks[taskIndex];
             col.tasks.splice(taskIndex, 1);
             break;
           }
@@ -171,7 +187,7 @@ export function useBoard(boardId: string) {
 
         if (taskToMove) {
           // Add task to new column
-          const targetColumn = newColumns.find(col => col.id === newColumnId);
+          const targetColumn = newColumns.find((col) => col.id === newColumnId);
           if (targetColumn) {
             targetColumn.tasks.splice(newOrder, 0, taskToMove);
           }
@@ -184,6 +200,23 @@ export function useBoard(boardId: string) {
     }
   }
 
+  async function createColumn(title: string) {
+    if (!board || !user) throw new Error("Board not loaded");
+
+    try {
+      const newColumn = await boardService.createColumn(supabase!, {
+        title,
+        board_id: board.id,
+        sort_order: columns.length,
+        user_id: user.id,
+      });
+      setColumns((prev) => [...prev, { ...newColumn, tasks: [] }]);
+      return newColumn;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create column.");
+    }
+  }
+
   return {
     board,
     columns,
@@ -193,5 +226,6 @@ export function useBoard(boardId: string) {
     createRealTask,
     setColumns,
     moveTask,
+    createColumn,
   };
 }
