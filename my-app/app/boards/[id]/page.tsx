@@ -446,74 +446,9 @@ export default function BoardPage() {
     // Update last drag tracking
     lastDragRef.current = { activeId, overId };
 
-    const sourceColumn = columns.find((col) =>
-      col.tasks.some((task) => task.id === activeId)
-    );
-
-    // Check if over a task or a column
-    let targetColumn = columns.find((col) =>
-      col.tasks.some((task) => task.id === overId)
-    );
-
-    // If not over a task, check if over a column
-    if (!targetColumn) {
-      targetColumn = columns.find((col) => col.id === overId);
-    }
-
-    if (!sourceColumn || !targetColumn) return;
-
-    if (sourceColumn.id === targetColumn.id) {
-      // Same column - reorder
-      const activeIndex = sourceColumn.tasks.findIndex(
-        (task) => task.id === activeId
-      );
-      const overIndex = targetColumn.tasks.findIndex(
-        (task) => task.id === overId
-      );
-
-      if (activeIndex !== overIndex && overIndex !== -1) {
-        setColumns((prev: ColumnWithTasks[]) => {
-          const newColumns = [...prev];
-          const column = newColumns.find((col) => col.id === sourceColumn.id);
-          if (column) {
-            const tasks = [...column.tasks];
-            const [removed] = tasks.splice(activeIndex, 1);
-            tasks.splice(overIndex, 0, removed);
-            column.tasks = tasks;
-          }
-          return newColumns;
-        });
-      }
-    } else {
-      // Different column - move task
-      setColumns((prev: ColumnWithTasks[]) => {
-        const newColumns = [...prev];
-        const sourceCol = newColumns.find((col) => col.id === sourceColumn.id);
-        const targetCol = newColumns.find((col) => col.id === targetColumn.id);
-
-        if (sourceCol && targetCol) {
-          const activeIndex = sourceCol.tasks.findIndex(
-            (task) => task.id === activeId
-          );
-          const overIndex = targetCol.tasks.findIndex(
-            (task) => task.id === overId
-          );
-
-          if (activeIndex !== -1) {
-            const [movedTask] = sourceCol.tasks.splice(activeIndex, 1);
-
-            // Insert at the position of the over task, or at the end if over the column
-            if (overIndex !== -1) {
-              targetCol.tasks.splice(overIndex, 0, movedTask);
-            } else {
-              targetCol.tasks.push(movedTask);
-            }
-          }
-        }
-
-        return newColumns;
-      });
-    }
+    // NOTE: We do NOT update columns state here
+    // handleDragOver should only track cursor position
+    // Actual state updates happen in handleDragEnd
   }
 
   async function handleDragEnd(event: DragEndEvent) {
