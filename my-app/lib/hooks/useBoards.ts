@@ -10,10 +10,12 @@ import { Board, ColumnWithTasks, Task } from "../supabase/models";
 import { useEffect, useState } from "react";
 import { useSupabase } from "../supabase/SupabaseProvider";
 
+export type BoardWithTaskCount = Board & { taskCount: number };
+
 export function useBoards() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { supabase } = useSupabase();
-  const [boards, setBoards] = useState<Board[]>([]);
+  const [boards, setBoards] = useState<BoardWithTaskCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +44,7 @@ export function useBoards() {
         supabase!,
         user.id
       );
-      setBoards(data as any); // Type assertion needed since we're adding taskCount
+      setBoards(data);
     } catch (err) {
       console.error("loadBoards error:", err);
       const errorMessage =
@@ -76,7 +78,12 @@ export function useBoards() {
           userId: user.id,
         }
       );
-      setBoards((prev) => [newBoard, ...prev]);
+      // Initialize taskCount to 0 for the new board
+      const newBoardWithCount: BoardWithTaskCount = {
+        ...newBoard,
+        taskCount: 0,
+      };
+      setBoards((prev) => [newBoardWithCount, ...prev]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create board.");
     }
@@ -133,7 +140,7 @@ export function useBoard(boardId: string) {
     }
   }
 
-  async function createRealTask(
+  async function createTask(
     columnId: string,
     taskData: {
       title: string;
@@ -254,8 +261,7 @@ export function useBoard(boardId: string) {
     refetch: loadBoard,
     createColumn,
     moveTask,
-    createTask: createRealTask,
-    createRealTask, // Export with original name for backward compatibility
+    createTask,
     updateColumn,
   };
 }

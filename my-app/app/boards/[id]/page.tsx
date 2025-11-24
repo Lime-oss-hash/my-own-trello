@@ -46,7 +46,7 @@ import { Label } from "@radix-ui/react-label"; // Form labels
 
 // --- Icons ---
 // Lucide React provides clean, consistent icons
-import { Calendar, Pointer, MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 
 // --- Data & State Management ---
 import { useBoard } from "@/lib/hooks/useBoards"; // Custom hook for board data
@@ -367,7 +367,7 @@ export default function BoardPage() {
     createColumn,
     updateBoard,
     columns,
-    createRealTask,
+    createTask,
     setColumns,
     moveTask,
     updateColumn,
@@ -443,7 +443,7 @@ export default function BoardPage() {
     } catch {}
   }
 
-  async function createTask(taskData: {
+  async function createTaskWrapper(taskData: {
     title: string;
     description?: string;
     assignee?: string;
@@ -454,7 +454,7 @@ export default function BoardPage() {
     if (!targetColumn) {
       throw new Error("No column available to add task");
     }
-    await createRealTask(targetColumn.id, taskData);
+    await createTask(targetColumn.id, taskData);
   }
 
   async function handleCreateTask(e: any) {
@@ -469,13 +469,19 @@ export default function BoardPage() {
         (formData.get("priority") as "low" | "medium" | "high") || "medium",
     };
     if (taskData.title.trim()) {
-      await createTask(taskData);
+      try {
+        await createTaskWrapper(taskData);
 
-      const trigger = document.querySelector(
-        '[data-state="open"]'
-      ) as HTMLElement;
-      if (trigger) {
-        trigger.click();
+        const trigger = document.querySelector(
+          '[data-state="open"]'
+        ) as HTMLElement;
+        if (trigger) {
+          trigger.click();
+        }
+      } catch (error) {
+        console.error("Failed to create task:", error);
+        // A toast notification here
+        alert("Failed to create task. Please try again.");
       }
     }
   }
