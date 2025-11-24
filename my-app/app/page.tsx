@@ -39,7 +39,10 @@ export default function DashboardPage() {
 
   const filteredBoards = boards.filter((board: Board) => {
     const matchesSearch = board.title.toLowerCase().includes(filters.search.toLowerCase());
-    console.log (filters.search)
+
+    const matchesDateRange = (!filters.dateRange.start || new Date(board.created_at) >= new Date(filters.dateRange.start)) &&
+    (!filters.dateRange.end || new Date(board.created_at) <= new Date(filters.dateRange.end))
+
     return matchesSearch;
   })
 
