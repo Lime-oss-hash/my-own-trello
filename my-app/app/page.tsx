@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
-import { useUser } from "@clerk/nextjs";
+import { useUser, SignUpButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import {
@@ -217,7 +217,7 @@ export default function HomePage() {
               </Link>
             ) : (
               <>
-                <Link href="/dashboard">
+                <SignUpButton mode="modal">
                   <Button
                     size="lg"
                     className="text-base sm:text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all"
@@ -225,7 +225,7 @@ export default function HomePage() {
                     Get Started Free
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </Link>
+                </SignUpButton>
                 <Link href="/pricing">
                   <Button
                     variant="outline"
@@ -560,7 +560,7 @@ export default function HomePage() {
                 </Button>
               </Link>
             ) : (
-              <Link href="/dashboard">
+              <SignUpButton mode="modal">
                 <Button
                   size="lg"
                   className="text-base sm:text-lg px-10 py-6 shadow-lg hover:shadow-xl transition-all"
@@ -568,7 +568,7 @@ export default function HomePage() {
                   Get Started for Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </Link>
+              </SignUpButton>
             )}
           </CardContent>
         </Card>
