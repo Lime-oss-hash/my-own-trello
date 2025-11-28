@@ -195,34 +195,76 @@ export function useBoard(boardId: string) {
     newColumnId: string,
     newOrder: number
   ) {
+    const previousColumns = columns;
+
     try {
-      await taskService.moveTask(supabase!, taskId, newColumnId, newOrder);
+      // 1. Optimistic Update
+      // Deep copy to avoid mutating state directly
+      const newColumns: ColumnWithTasks[] = JSON.parse(JSON.stringify(columns));
 
-      setColumns((prev) => {
-        const newColumns = [...prev];
+      // Find source column and task
+      let sourceColIndex = -1;
+      let taskIndex = -1;
 
-        // Find and remove task from the old column
-        let taskToMove: Task | null = null;
-        for (const col of newColumns) {
-          const taskIndex = col.tasks.findIndex((task) => task.id === taskId);
-          if (taskIndex !== -1) {
-            taskToMove = col.tasks[taskIndex];
-            col.tasks.splice(taskIndex, 1);
-            break;
-          }
+      for (let i = 0; i < newColumns.length; i++) {
+        const idx = newColumns[i].tasks.findIndex((t) => t.id === taskId);
+        if (idx !== -1) {
+          sourceColIndex = i;
+          taskIndex = idx;
+          break;
         }
+      }
 
-        if (taskToMove) {
-          // Add task to new column
-          const targetColumn = newColumns.find((col) => col.id === newColumnId);
-          if (targetColumn) {
-            targetColumn.tasks.splice(newOrder, 0, taskToMove);
-          }
-        }
+      if (sourceColIndex === -1 || taskIndex === -1) return;
 
-        return newColumns;
+      const sourceCol = newColumns[sourceColIndex];
+      const taskToMove = sourceCol.tasks[taskIndex];
+
+      // Remove from source
+      sourceCol.tasks.splice(taskIndex, 1);
+
+      // Find target column
+      const targetColIndex = newColumns.findIndex((c) => c.id === newColumnId);
+      if (targetColIndex === -1) return;
+
+      const targetCol = newColumns[targetColIndex];
+
+      // Update task details
+      const updatedTask = { ...taskToMove, column_id: newColumnId };
+
+      // Add to target
+      targetCol.tasks.splice(newOrder, 0, updatedTask);
+
+      // Collect updates for Supabase
+      const updates: { id: string; column_id: string; sort_order: number }[] = [];
+
+      // Re-index source column (if different from target, or always to be safe)
+      // If source and target are same, we just re-index the one column.
+      // If different, we re-index both.
+
+      const columnsToUpdate = new Set([sourceColIndex, targetColIndex]);
+
+      columnsToUpdate.forEach((colIdx) => {
+        newColumns[colIdx].tasks.forEach((task, index) => {
+          task.sort_order = index; // Update local state
+          updates.push({
+            id: task.id,
+            column_id: newColumns[colIdx].id,
+            sort_order: index,
+          });
+        });
       });
+
+      // Apply optimistic update
+      setColumns(newColumns);
+
+      // 2. Persist to Supabase
+      if (updates.length > 0) {
+        await taskService.updateTasksOrder(supabase!, updates);
+      }
     } catch (err) {
+      // Revert on error
+      setColumns(previousColumns);
       setError(err instanceof Error ? err.message : "Failed to move task.");
     }
   }

@@ -286,6 +286,17 @@ export const taskService = {
     return data;
   },
 
+  async updateTasksOrder(
+    supabase: SupabaseClient,
+    updates: { id: string; column_id: string; sort_order: number }[]
+  ) {
+    const { error } = await supabase
+      .from("tasks")
+      .upsert(updates, { onConflict: "id" });
+
+    if (error) throw error;
+  },
+
   async deleteTask(supabase: SupabaseClient, taskId: string): Promise<void> {
     const { error } = await supabase.from("tasks").delete().eq("id", taskId);
     if (error) throw error;
