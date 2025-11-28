@@ -116,6 +116,7 @@ function DroppableColumn({
   // - setNodeRef: Attach this to the div to track it
   // - isOver: Boolean that's true when something is dragged over this column
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
     <div
@@ -158,7 +159,7 @@ function DroppableColumn({
         <div className="p-2">
           {children}
 
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="ghost"
@@ -179,7 +180,10 @@ function DroppableColumn({
 
               <form
                 className="space-y-4"
-                onSubmit={(e) => onCreateTask(column.id, e)}
+                onSubmit={async (e) => {
+                  await onCreateTask(column.id, e);
+                  setIsDialogOpen(false);
+                }}
               >
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
@@ -227,7 +231,11 @@ function DroppableColumn({
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
-                  <Button type="button" variant="outline">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
                     Cancel
                   </Button>
                   <Button type="submit">Create Task</Button>
@@ -396,6 +404,7 @@ export default function BoardPage() {
   });
 
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -482,13 +491,6 @@ export default function BoardPage() {
     if (taskData.title.trim()) {
       try {
         await createTaskWrapper(columnId, taskData);
-
-        const trigger = document.querySelector(
-          '[data-state="open"]'
-        ) as HTMLElement;
-        if (trigger) {
-          trigger.click();
-        }
       } catch (error) {
         console.error("Failed to create task:", error);
         // A toast notification here
@@ -877,7 +879,7 @@ export default function BoardPage() {
             </div>
 
             {/* Add task dialog */}
-            <Dialog>
+            <Dialog open={isCreatingTask} onOpenChange={setIsCreatingTask}>
               <DialogTrigger asChild>
                 <Button className="w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
@@ -895,7 +897,10 @@ export default function BoardPage() {
 
                 <form
                   className="space-y-4"
-                  onSubmit={(e) => handleCreateTask(columns[0]?.id || "", e)}
+                  onSubmit={async (e) => {
+                    await handleCreateTask(columns[0]?.id || "", e);
+                    setIsCreatingTask(false);
+                  }}
                 >
                   <div className="space-y-2">
                     <Label htmlFor="title">Title *</Label>
@@ -943,7 +948,11 @@ export default function BoardPage() {
                   </div>
 
                   <div className="flex justify-end space-x-2 pt-4">
-                    <Button type="button" variant="outline">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsCreatingTask(false)}
+                    >
                       Cancel
                     </Button>
                     <Button type="submit">Create Task</Button>
