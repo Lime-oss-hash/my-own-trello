@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useBoards } from "@/lib/hooks/useBoards";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { Filter, List, Loader2, Plus, Search, Trello, Activity } from "lucide-react";
+import { Filter, List, Loader2, Plus, Search, Trello, Activity, CheckSquare } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div className="h-10 w-10 sm:h-12 sm:w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Trello className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
+                  <CheckSquare className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
                 </div>
               </div>
             </CardContent>
