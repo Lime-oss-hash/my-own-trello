@@ -19,7 +19,8 @@ export function useBoards() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Load boards when user is authenticated
+  // Only reload if user ID changes, not on every user/supabase object update
   useEffect(() => {
     if (!isUserLoaded) return;
 
@@ -31,7 +32,8 @@ export function useBoards() {
     if (user && supabase) {
       loadBoards();
     }
-  }, [user, isUserLoaded, supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, isUserLoaded]); // Only watch user.id, not the entire user object
 
   async function loadBoards() {
     if (!user || !supabase) return;
@@ -111,12 +113,14 @@ export function useBoard(boardId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Load board data when boardId changes
+  // Don't reload on every supabase object update
   useEffect(() => {
     if (boardId) {
       loadBoard();
     }
-  }, [boardId, supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boardId]); // Only watch boardId changes
 
   async function loadBoard() {
     if (!boardId || !supabase) return;
@@ -236,7 +240,8 @@ export function useBoard(boardId: string) {
       targetCol.tasks.splice(newOrder, 0, updatedTask);
 
       // Collect updates for Supabase
-      const updates: { id: string; column_id: string; sort_order: number }[] = [];
+      const updates: { id: string; column_id: string; sort_order: number }[] =
+        [];
 
       // Re-index source column (if different from target, or always to be safe)
       // If source and target are same, we just re-index the one column.
@@ -340,7 +345,7 @@ export function useBoard(boardId: string) {
       // The caller (UI) should handle navigation after deletion
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete board.");
-      throw err; 
+      throw err;
     }
   }
 

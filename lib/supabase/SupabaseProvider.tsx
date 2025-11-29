@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { useSession } from "@clerk/nextjs";
 
@@ -19,11 +19,13 @@ export default function SupabaseProvider({
   children: React.ReactNode;
 }) {
   const { session } = useSession();
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (!session) return;
+  // Memoize the Supabase client to prevent recreation on every render
+  // Only recreate when session ID changes, not on every session object update
+  const supabase = useMemo(() => {
+    if (!session) return null;
+
     const client = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,14 +34,11 @@ export default function SupabaseProvider({
           // Get the Supabase token with a custom fetch method
           fetch: async (url, options = {}) => {
             const clerkToken = await session?.getToken();
-            console.log("SupabaseProvider: Token retrieved?", !!clerkToken);
 
             // Insert the Clerk Supabase token into the headers
             const headers = new Headers(options?.headers);
             if (clerkToken) {
               headers.set("Authorization", `Bearer ${clerkToken}`);
-            } else {
-              console.warn("SupabaseProvider: No Clerk token found for request", url);
             }
 
             // Call the default fetch
@@ -51,15 +50,20 @@ export default function SupabaseProvider({
         },
       }
     );
-    Promise.resolve().then(() => {
-      setSupabase(client);
+
+    return client;
+  }, [session?.id]); // Only recreate when session ID changes
+
+  useEffect(() => {
+    if (supabase) {
       setIsLoaded(true);
-    });
-  }, [session]);
+    } else {
+      setIsLoaded(false);
+    }
+  }, [supabase]);
 
   return (
     <Context.Provider value={{ supabase, isLoaded }}>
-      {/* {!isLoaded ? <div> Loading...</div> : children} */}
       {children}
     </Context.Provider>
   );
