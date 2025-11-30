@@ -77,14 +77,10 @@ export const boardService = {
             return { id: col.id, title: col.title, count };
         });
 
-        // Calculate total active task count (excluding "Done")
-        const activeTaskCount = columns.reduce((acc, col) => {
-            if (col.title.toLowerCase() === 'done') return acc;
-            const count = tasks ? tasks.filter(t => t.column_id === col.id).length : 0;
-            return acc + count;
-        }, 0);
+        // Calculate total task count (including "Done")
+        const totalTaskCount = tasks ? tasks.length : 0;
 
-        return { ...board, taskCount: activeTaskCount, columnCounts };
+        return { ...board, taskCount: totalTaskCount, columnCounts };
       })
     );
 

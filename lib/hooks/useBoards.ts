@@ -52,9 +52,9 @@ export function useBoards() {
       );
 
       // Apply sorting logic:
-      // 1. Incomplete task count (descending)
-      // 2. UpdatedAt/CreatedAt (newest first)
-      // 3. 0 tasks go to the end (but still sorted by date among themselves)
+      // 1. Total task count (descending)
+      // 2. Created Date (descending) for tie-breaker
+      // 3. 0 tasks go to the end (naturally handled by count descending, but explicit check ensures grouping)
       const sortedData = data.sort((a, b) => {
         const countA = a.taskCount || 0;
         const countB = b.taskCount || 0;
@@ -68,9 +68,9 @@ export function useBoards() {
             return countB - countA;
         }
 
-        // Tie-breaker (or if both have 0 tasks): Sort by most recent date
-        const dateA = new Date(a.updated_at || a.created_at).getTime();
-        const dateB = new Date(b.updated_at || b.created_at).getTime();
+        // Tie-breaker (or if both have 0 tasks): Sort by created date
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
         return dateB - dateA;
       });
 
