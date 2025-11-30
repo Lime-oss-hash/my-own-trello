@@ -127,8 +127,17 @@ export function BoardCard({ board, isNew, onDelete }: BoardCardProps) {
              )}
         </div>
 
-        {/* Updated Time */}
-        <div className="flex items-center gap-1 whitespace-nowrap ml-4">
+        {/* Dates */}
+        <div className="flex flex-col items-end ml-4 text-[10px] leading-tight">
+             <span className="text-gray-500 font-medium mb-0.5">
+               {new Date(board.created_at).toLocaleString("en-US", {
+                 month: "short",
+                 day: "numeric",
+                 hour: "numeric",
+                 minute: "numeric",
+                 hour12: true,
+               })}
+             </span>
              <span className="text-gray-400">Updated {getRelativeTime(board.updated_at)}</span>
         </div>
       </CardFooter>
