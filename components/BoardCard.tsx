@@ -73,7 +73,7 @@ export function BoardCard({ board, isNew, onDelete }: BoardCardProps) {
         <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
                  <div className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 ${board.color} rounded-sm`} />
-                 <CardTitle className="text-sm sm:text-base font-semibold truncate leading-tight group-hover:text-blue-600 transition-colors">
+                 <CardTitle className="text-lg font-bold truncate leading-tight group-hover:text-blue-600 transition-colors">
                     {board.title}
                  </CardTitle>
             </div>
