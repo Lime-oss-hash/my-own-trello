@@ -320,7 +320,7 @@ export default function DashboardPage() {
               </Button>
 
               <Link href="/dashboard/manage">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   <Settings className="w-4 h-4 mr-2" />
                   Manage
                 </Button>
