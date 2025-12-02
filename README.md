@@ -863,6 +863,8 @@ If you need help or have questions:
 
 ---
 
+© 2025 Sam Bai. All rights reserved.
+
 **Built with ❤️ by Sam Bai**
 
 _Happy task managing! 🚀_
