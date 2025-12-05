@@ -3,7 +3,7 @@
 A modern, full-featured project management application built with Next.js, featuring a beautiful UI, real-time updates, and powerful task management capabilities. Create boards, organize tasks with drag-and-drop, collaborate with your team, and track progress—all in a sleek, responsive interface.
 
 ![Project Status](https://img.shields.io/badge/status-active-success.svg)
-![Next.js](https://img.shields.io/badge/Next.js-16.0.1-black)
+![Next.js](https://img.shields.io/badge/Next.js-16.0.7-black)
 ![React](https://img.shields.io/badge/React-19.2.0-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 
