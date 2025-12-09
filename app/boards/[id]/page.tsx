@@ -22,466 +22,63 @@
 
 import Navbar from "@/components/navbar";
 
-// Shadcn UI components - pre-built, accessible UI elements
-import { Badge } from "@/components/ui/badge"; // For displaying task counts
-import { Button } from "@/components/ui/button"; // Buttons throughout the app
-import { Card, CardContent } from "@/components/ui/card"; // Task card containers
+// Shadcn UI components
+import { Button } from "@/components/ui/button";
 import {
-  Dialog, // Modal overlay
-  DialogContent, // Modal content container
-  DialogHeader, // Modal header section
-  DialogTitle, // Modal title text
-  DialogTrigger, // Button that opens the modal
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input"; // Text input fields
+import { Input } from "@/components/ui/input";
 import {
-  Select, // Dropdown selector
-  SelectContent, // Dropdown options container
-  SelectItem, // Individual option
-  SelectTrigger, // Button that opens dropdown
-  SelectValue, // Shows selected value
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea"; // Multi-line text input
-import { Label } from "@radix-ui/react-label"; // Form labels
+import { Label } from "@radix-ui/react-label";
+import { Textarea } from "@/components/ui/textarea";
 
-// --- Icons ---
-// Lucide React provides clean, consistent icons
-import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
+// Board components (extracted for modularity)
+import { DroppableColumn, SortableTask, TaskOverlay } from "@/components/board";
 
-// --- Data & State Management ---
-import { useBoard } from "@/lib/hooks/useBoards"; // Custom hook for board data
-import { ColumnWithTasks, Task } from "@/lib/supabase/models"; // TypeScript types
+// Icons
+import { Plus } from "lucide-react";
 
-// --- React Hooks ---
-import { useParams, useRouter } from "next/navigation"; // Get URL parameters
-import { useState, useRef } from "react"; // State and refs
+// Data & State Management
+import { useBoard } from "@/lib/hooks/useBoards";
+import { ColumnWithTasks, Task } from "@/lib/supabase/models";
 
-// --- Drag and Drop Library (@dnd-kit) ---
-// This library handles all the drag-and-drop functionality
+// React Hooks
+import { useParams, useRouter } from "next/navigation";
+import { useState, useRef } from "react";
+
+// Drag and Drop Library (@dnd-kit)
 import {
-  DndContext, // Wrapper that enables drag-and-drop
-  DragEndEvent, // TypeScript type for when drag completes
-  DragOverEvent, // TypeScript type for when dragging over items
-  DragOverlay, // Shows a preview of the item being dragged
-  DragStartEvent, // TypeScript type for when drag starts
-  closestCorners, // Algorithm to detect nearest drop target
-  useDroppable, // Hook to make an element accept drops
-  useSensor, // Hook to configure input devices
-  useSensors, // Hook to combine multiple sensors
-  MouseSensor, // Handles mouse input
-  TouchSensor, // Handles touch screen input
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
+  closestCorners,
+  useSensor,
+  useSensors,
+  MouseSensor,
+  TouchSensor,
   pointerWithin,
   rectIntersection,
   CollisionDetection,
 } from "@dnd-kit/core";
 
-import { CSS } from "@dnd-kit/utilities"; // CSS transform utilities
-
 import {
-  useSortable, // Hook for items that can be sorted
-  SortableContext, // Wrapper for sortable items
-  verticalListSortingStrategy, // Algorithm for vertical list sorting
+  SortableContext,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-// ============================================================================
-// COMPONENT: DroppableColumn
-// ============================================================================
-/**
- * A column component that can accept dragged tasks
- *
- * WHAT IT DOES:
- * - Displays a column header with title and task count
- * - Contains all tasks for this column
- * - Accepts tasks being dropped into it
- * - Provides visual feedback when hovering with a dragged task
- *
- * HOW IT WORKS:
- * - useDroppable hook makes it detect when tasks are dragged over
- * - isOver boolean tells us if something is being dragged over this column
- * - Changes background color to show it's a valid drop target
- */
-
-function DroppableColumn({
-  column,
-  children,
-  onCreateTask,
-  onEditColumn,
-}: {
-  column: ColumnWithTasks;
-  children: React.ReactNode;
-  onCreateTask: (columnId: string, taskData: {
-    title: string;
-    description?: string;
-    assignee?: string;
-    dueDate?: string;
-    priority: "low" | "medium" | "high";
-  }) => Promise<void>;
-  onEditColumn: (column: ColumnWithTasks) => void;
-}) {
-  // DRAG-AND-DROP SETUP
-  // useDroppable makes this column accept dropped tasks
-  // - setNodeRef: Attach this to the div to track it
-  // - isOver: Boolean that's true when something is dragged over this column
-  const { setNodeRef, isOver } = useDroppable({
-    id: column.id,
-    data: {
-      type: "column",
-      column,
-    },
-  });
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-
-  return (
-    <div
-      // setNodeRef connects this div to the drag-and-drop system
-      ref={setNodeRef}
-      // Conditional styling: Shows blue background when dragging over
-      className={`w-full lg:flex-shrink-0 lg:w-80 ${
-        isOver ? "bg-blue-50" : ""
-      }`}
-    >
-      <div
-        // Another visual indicator: Blue ring when dragging over
-        className={`bg-white rounded-lg shadow-sm border ${
-          isOver ? "ring-2 ring-blue-300" : ""
-        }`}
-      >
-        {/* Column Header */}
-        <div className="p-3 sm:p-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 min-w-0">
-              <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                {column.title}
-              </h3>
-              <Badge variant="secondary" className="text-xs flex-shrink-0">
-                {column.tasks.length}
-              </Badge>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-shrink-0"
-              onClick={() => onEditColumn(column)}
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Column Content */}
-        <div className="p-2">
-          {children}
-
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full mt-3 text-gray-500 hover:text-gray-700"
-              >
-                <Plus />
-                Add Task
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
-              <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-                <p className="text-sm text-gray-600">
-                  Add a new task to your board
-                </p>
-              </DialogHeader>
-
-              <form
-                className="space-y-4"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (isCreating) return; // Prevent duplicate submissions
-
-                  const formData = new FormData(e.currentTarget);
-                  const taskData = {
-                    title: formData.get("title") as string,
-                    description: (formData.get("description") as string) || undefined,
-                    assignee: (formData.get("assignee") as string) || undefined,
-                    dueDate: (formData.get("dueDate") as string) || undefined,
-                    priority: (formData.get("priority") as "low" | "medium" | "high") || "medium",
-                  };
-
-                  if (!taskData.title.trim()) return;
-
-                  setIsCreating(true);
-                  try {
-                    await onCreateTask(column.id, taskData);
-                    setIsDialogOpen(false);
-                  } catch (error) {
-                    console.error("Failed to create task:", error);
-                  } finally {
-                    setIsCreating(false);
-                  }
-                }}
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    placeholder="Enter task title"
-                    required
-                    disabled={isCreating}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    placeholder="Enter task description"
-                    rows={3}
-                    disabled={isCreating}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="assignee">Assignee</Label>
-                  <Input
-                    id="assignee"
-                    name="assignee"
-                    placeholder="Who should do this?"
-                    disabled={isCreating}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="priority">Priority *</Label>
-                  <Select
-                    name="priority"
-                    defaultValue="medium"
-                    disabled={isCreating}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="dueDate">Due Date</Label>
-                  <Input
-                    type="date"
-                    id="dueDate"
-                    name="dueDate"
-                    disabled={isCreating}
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                    disabled={isCreating}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isCreating}>
-                    {isCreating ? "Creating..." : "Create Task"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SortableTask({
-  task,
-  onDelete,
-}: {
-  task: Task;
-  onDelete: (taskId: string) => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: task.id,
-    data: {
-      type: "task",
-    },
-  });
-
-  const styles = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  function getPriorityColor(priority: "low" | "medium" | "high"): string {
-    switch (priority) {
-      case "high":
-        return "bg-red-500";
-      case "medium":
-        return "bg-yellow-500";
-      case "low":
-        return "bg-green-500";
-      default:
-        return "bg-gray-500";
-    }
-  }
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  return (
-    <div ref={setNodeRef} {...attributes} {...listeners} style={styles}>
-      <Card className="cursor-pointer hover:shadow-md transition-shadow group">
-        <CardContent className="p-3 sm:p-4">
-          <div className="space-y-2 sm:space-y-3">
-            {/* Task Header */}
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-medium text-gray-900 text-sm leading-tight flex-1 min-w-0">
-                {task.title}
-              </h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDeleteDialogOpen(true);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-            {/* Task Description */}
-            <p className="text-gray-600 text-xs line-clamp-2">
-              {task.description || "No description"}
-            </p>
-            {/* Task Meta */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
-                {task.assignee && (
-                  <div className="flex items-center space-x-1 text-xs text-gray-500">
-                    <span className="truncate">{task.assignee}</span>
-                  </div>
-                )}
-                {task.due_date && (
-                  <div className="flex items-center space-x-1 text-xs text-gray-500">
-                    <span className="truncate">{task.due_date}</span>
-                  </div>
-                )}
-                <div
-                  className={`w-2 h-2 rounded-full flex-shrink-0 ${getPriorityColor(
-                    task.priority
-                  )}`}
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              onDelete(task.id);
-              setIsDeleteDialogOpen(false);
-            }
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Delete Task</DialogTitle>
-            <p className="text-sm text-gray-600">
-              Are you sure you want to delete this task? This action cannot be undone.
-            </p>
-          </DialogHeader>
-          <div className="flex justify-end space-x-4 pt-4">
-            <Button
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteDialogOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(task.id);
-                setIsDeleteDialogOpen(false);
-              }}
-            >
-              Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-function TaskOverlay({ task }: { task: Task }) {
-  function getPriorityColor(priority: "low" | "medium" | "high"): string {
-    switch (priority) {
-      case "high":
-        return "bg-red-500";
-      case "medium":
-        return "bg-yellow-500";
-      case "low":
-        return "bg-green-500";
-      default:
-        return "bg-gray-500";
-    }
-  }
-  return (
-    <Card className="w-[400px] h-[200px]">
-      <CardContent>
-        <h4 className="font-medium text-gray-900 text-sm leading-tight flex-1 min-w-0 pr-2">
-          {task.title}
-        </h4>
-        <p className="text-gray-600 text-xs line-clamp-2">
-          {task.description || "No description"}
-        </p>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
-            {task.assignee && (
-              <div className="flex items-center space-x-1 text-xs text-gray-500">
-                <span className="truncate">{task.assignee}</span>
-              </div>
-            )}
-            {task.due_date && (
-              <div className="flex items-center space-x-1 text-xs text-gray-500">
-                <span className="truncate">{task.due_date}</span>
-              </div>
-            )}
-            <div
-              className={`w-2 h-2 rounded-full flex-shrink-0 ${getPriorityColor(
-                task.priority
-              )}`}
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
+// Custom collision detection for drag-and-drop
 const customCollisionDetection: CollisionDetection = (args) => {
   // First, attempt to use the pointer coordinates to find collisions
   // This is the most intuitive mode - "what am I pointing at?"
@@ -506,6 +103,7 @@ const customCollisionDetection: CollisionDetection = (args) => {
 };
 
 export default function BoardPage() {
+  // --- ROUTING & DATA ---
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const {
@@ -521,6 +119,8 @@ export default function BoardPage() {
     deleteTask,
     deleteBoard,
   } = useBoard(id);
+
+  // --- LOCAL UI STATE ---
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -544,15 +144,17 @@ export default function BoardPage() {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
+  // --- DRAG-AND-DROP SENSORS ---
+  // Configure mouse and touch input for drag operations
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 10,
+        distance: 10, // Minimum drag distance before activation
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200, // Reduced from 250ms to make it easier to grab
+        delay: 200, // Hold duration before drag starts on touch
         tolerance: 5,
       },
     })
@@ -579,6 +181,7 @@ export default function BoardPage() {
 
   const originalColumnId = useRef<string | null>(null);
 
+  // --- FILTER HANDLERS ---
   function clearFilters() {
     setFilters({
       priority: [] as string[],
@@ -586,6 +189,8 @@ export default function BoardPage() {
       dueDate: null as string | null,
     });
   }
+
+  // --- BOARD/COLUMN/TASK HANDLERS ---
 
   async function handleUpdateBoard(e: React.FormEvent) {
     e.preventDefault();
@@ -598,7 +203,9 @@ export default function BoardPage() {
         color: newColor || board.color,
       });
       setIsEditingTitle(false);
-    } catch {}
+    } catch (error) {
+      console.error("Failed to update board:", error);
+    }
   }
 
   async function createTaskWrapper(
@@ -615,7 +222,10 @@ export default function BoardPage() {
     await createTask(columnId, taskData);
   }
 
-  async function handleCreateTask(columnId: string, e: React.FormEvent<HTMLFormElement>) {
+  async function handleCreateTask(
+    columnId: string,
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const taskData = {
@@ -897,7 +507,7 @@ export default function BoardPage() {
                     "bg-green-500",
                     "bg-orange-500",
                     "bg-purple-500",
-                    "bg-red-500"
+                    "bg-red-500",
                   ].map((color, key) => (
                     <button
                       key={key}
@@ -1145,7 +755,6 @@ export default function BoardPage() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
-
             {/* Scroll bar styling */}
             <div className="flex flex-col lg:flex-row lg:space-x-6 lg:overflow-x-auto lg:pb-6 lg:px-2 lg:mx-2 lg:[&::-webkit-scrollbar]:h-2 lg:[&::-webkit-scrollbar-track]:bg-gray-100 lg:[&::-webkit-scrollbar-thumb]:bg-gray-300 lg:[&::-webkit-scrollbar-thumb]:rounded-full space-y-4 lg:space-y-0">
               {filteredColumns.map((column, key) => (

@@ -1,12 +1,22 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function getBoardColorClasses(color: string) {
-  const colorMap: Record<string, { ring: string; shadow: string; border: string; badge: string; text: string; hover: string }> = {
+  const colorMap: Record<
+    string,
+    {
+      ring: string;
+      shadow: string;
+      border: string;
+      badge: string;
+      text: string;
+      hover: string;
+    }
+  > = {
     "bg-blue-500": {
       ring: "ring-blue-400",
       shadow: "rgba(96,165,250,0.5)",
@@ -59,6 +69,19 @@ export function getRelativeTime(dateString: string) {
   if (diffInSeconds < 60) return "just now";
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  if (diffInSeconds < 604800)
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
   return date.toLocaleDateString();
+}
+
+/**
+ * Returns Tailwind background color class for task priority
+ */
+export function getPriorityColor(priority: "low" | "medium" | "high"): string {
+  const colors: Record<"low" | "medium" | "high", string> = {
+    high: "bg-red-500",
+    medium: "bg-yellow-500",
+    low: "bg-green-500",
+  };
+  return colors[priority] ?? "bg-gray-500";
 }

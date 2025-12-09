@@ -2,15 +2,15 @@
  * ============================================================================
  * DASHBOARD PAGE
  * ============================================================================
- * 
+ *
  * This is the main landing page for authenticated users.
- * 
+ *
  * KEY FEATURES:
  * - Displays high-level statistics (Total Boards, Active Boards, Total Tasks, Recent Activity)
  * - Lists all user boards with filtering and view options (Grid/List)
  * - Provides access to create new boards
  * - Handles "Free Plan" limits (e.g., max 1 board for free users)
- * 
+ *
  * COMPONENT STRUCTURE:
  * - Header: Welcome message and user greeting
  * - Stats Grid: 4 cards showing key metrics
@@ -32,11 +32,20 @@ import { Button } from "@/components/ui/button";
 import { useBoards, BoardWithTaskCount } from "@/lib/hooks/useBoards";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { Filter, List, Loader2, Plus, Search, Hand, Settings, Trello, Rocket, CheckSquare, Activity } from "lucide-react";
 import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+  Filter,
+  List,
+  Loader2,
+  Plus,
+  Search,
+  Hand,
+  Settings,
+  Trello,
+  Rocket,
+  CheckSquare,
+  Activity,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Grid3x3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -63,16 +72,16 @@ export default function DashboardPage() {
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false); // Filter modal visibility
   const [showUpgradeDialog, setShowUpgradeDialog] = useState<boolean>(false); // Upgrade modal visibility
   const [isCreating, setIsCreating] = useState<boolean>(false); // Creation loading state
-  
+
   // Delete State
   const [boardToDelete, setBoardToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  
+
   // Create Dialog State
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [newBoardColor, setNewBoardColor] = useState("bg-blue-500");
-  
+
   // Animation State: Track new boards to apply "new" badge/glow effect
   const [newBoardIds, setNewBoardIds] = useState<Record<string, number>>({});
 
@@ -81,7 +90,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setNewBoardIds(prev => {
+      setNewBoardIds((prev) => {
         const next = { ...prev };
         let changed = false;
         Object.entries(next).forEach(([id, timestamp]) => {
@@ -110,7 +119,7 @@ export default function DashboardPage() {
   });
 
   // --- DERIVED STATE ---
-  
+
   // Check if user can create more boards based on their plan
   const canCreateBoard = !isFreeUser || boards.length < 1;
 
@@ -127,7 +136,7 @@ export default function DashboardPage() {
         new Date(board.created_at) >= new Date(filters.dateRange.start)) &&
       (!filters.dateRange.end ||
         new Date(board.created_at) <= new Date(filters.dateRange.end));
-    
+
     // Note: Task count filtering is set in state but not yet implemented in this filter function
     // If needed, add: && (!filters.taskCount.min || board.taskCount >= filters.taskCount.min) ...
 
@@ -163,24 +172,24 @@ export default function DashboardPage() {
       setShowUpgradeDialog(true);
       return;
     }
-    
+
     if (!newBoardTitle.trim()) return;
 
     try {
       setIsCreating(true);
-      const newBoard = await createBoard({ 
+      const newBoard = await createBoard({
         title: newBoardTitle,
-        color: newBoardColor 
+        color: newBoardColor,
       });
       if (newBoard) {
         // Mark as new to trigger animation
-        setNewBoardIds(prev => ({ ...prev, [newBoard.id]: Date.now() }));
+        setNewBoardIds((prev) => ({ ...prev, [newBoard.id]: Date.now() }));
         setIsCreateDialogOpen(false);
         setNewBoardTitle("");
         setNewBoardColor("bg-blue-500");
       }
     } catch (error) {
-        console.error("Creation failed", error);
+      console.error("Creation failed", error);
     } finally {
       setIsCreating(false);
     }
@@ -188,7 +197,7 @@ export default function DashboardPage() {
 
   const handleDeleteBoard = async () => {
     if (!boardToDelete) return;
-    
+
     try {
       await deleteBoard(boardToDelete);
       setBoardToDelete(null);
@@ -199,13 +208,18 @@ export default function DashboardPage() {
   };
 
   // --- STATS CALCULATIONS ---
-  const totalTasks = boards.reduce((total: number, board: BoardWithTaskCount) => {
-    const boardTotal = board.columnCounts?.reduce((sum, col) => sum + col.count, 0) || 0;
-    return total + boardTotal;
-  }, 0);
+  const totalTasks = boards.reduce(
+    (total: number, board: BoardWithTaskCount) => {
+      const boardTotal =
+        board.columnCounts?.reduce((sum, col) => sum + col.count, 0) || 0;
+      return total + boardTotal;
+    },
+    0
+  );
 
   const activeBoards = boards.filter((board: BoardWithTaskCount) => {
-    const boardTotal = board.columnCounts?.reduce((sum, col) => sum + col.count, 0) || 0;
+    const boardTotal =
+      board.columnCounts?.reduce((sum, col) => sum + col.count, 0) || 0;
     return boardTotal > 0;
   }).length;
 
@@ -343,11 +357,17 @@ export default function DashboardPage() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center mb-4 sm:mb-6 space-y-2 sm:space-y-0 sm:space-x-4">
               {/* View Toggles */}
-              <div className="flex items-center space-x-2 rounded bg-white border p-1">
+              <div
+                className="flex items-center space-x-2 rounded bg-white border p-1"
+                role="group"
+                aria-label="View mode"
+              >
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("grid")}
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === "grid"}
                 >
                   <Grid3x3 />
                 </Button>
@@ -356,6 +376,8 @@ export default function DashboardPage() {
                   variant={viewMode === "list" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setViewMode("list")}
+                  aria-label="List view"
+                  aria-pressed={viewMode === "list"}
                 >
                   <List />
                 </Button>
@@ -371,7 +393,11 @@ export default function DashboardPage() {
               </Button>
 
               <Link href="/dashboard/manage">
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   <Settings className="w-4 h-4 mr-2" />
                   Manage
                 </Button>
@@ -383,7 +409,7 @@ export default function DashboardPage() {
               </Button>
             </div>
           </div>
-          
+
           {/* Search Input */}
           <div className="relative mb-4 sm:mb-6">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -609,23 +635,30 @@ export default function DashboardPage() {
               <Label>Color Mark</Label>
               <div className="flex flex-wrap gap-2">
                 {[
-                    "bg-blue-500",
-                    "bg-green-500",
-                    "bg-orange-500",
-                    "bg-purple-500",
-                    "bg-red-500"
-                ].map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full ${color} transition-all ${
-                      newBoardColor === color
-                        ? "ring-2 ring-offset-2 ring-gray-400 scale-110"
-                        : "hover:scale-105"
-                    }`}
-                    onClick={() => setNewBoardColor(color)}
-                  />
-                ))}
+                  "bg-blue-500",
+                  "bg-green-500",
+                  "bg-orange-500",
+                  "bg-purple-500",
+                  "bg-red-500",
+                ].map((color) => {
+                  const colorName = color
+                    .replace("bg-", "")
+                    .replace("-500", "");
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      aria-label={`Select ${colorName} color`}
+                      aria-pressed={newBoardColor === color}
+                      className={`w-8 h-8 rounded-full ${color} transition-all ${
+                        newBoardColor === color
+                          ? "ring-2 ring-offset-2 ring-gray-400 scale-110"
+                          : "hover:scale-105"
+                      }`}
+                      onClick={() => setNewBoardColor(color)}
+                    />
+                  );
+                })}
               </div>
             </div>
             <div className="flex justify-end space-x-2 pt-4">
@@ -636,7 +669,10 @@ export default function DashboardPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={!newBoardTitle.trim() || isCreating}>
+              <Button
+                type="submit"
+                disabled={!newBoardTitle.trim() || isCreating}
+              >
                 {isCreating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -661,7 +697,7 @@ export default function DashboardPage() {
               to create unlimited boards.
             </p>
           </DialogHeader>
-          <div className="flex justify-end spaec-x-4 pt-4">
+          <div className="flex justify-end space-x-4 pt-4">
             <Button
               variant="outline"
               onClick={() => setShowUpgradeDialog(false)}
@@ -686,7 +722,8 @@ export default function DashboardPage() {
           <DialogHeader>
             <DialogTitle>Delete Board</DialogTitle>
             <p className="text-sm text-gray-600">
-              Are you sure you want to delete this board? This action cannot be undone.
+              Are you sure you want to delete this board? This action cannot be
+              undone.
             </p>
           </DialogHeader>
           <div className="flex justify-end space-x-4 pt-4">
