@@ -628,6 +628,7 @@ If you find a bug or have a feature request:
 
 ## 🙏 Acknowledgments
 
+- **[PedroTech](https://www.youtube.com/@PedroTechnologies)** - Initial project inspiration and learning resource ([Build a Fullstack Trello App](https://www.youtube.com/watch?v=ugxI1o5SyMs&t=24081s))
 - **Next.js** - The React framework for production
 - **Clerk** - Authentication and user management
 - **Supabase** - Backend-as-a-Service and database
