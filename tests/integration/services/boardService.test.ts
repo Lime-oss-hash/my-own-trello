@@ -338,7 +338,7 @@ describe("boardDataService", () => {
       );
 
       expect(supabase.from).toHaveBeenCalledWith("boards");
-      expect(result.columns).toHaveLength(2);
+      expect(result.columnsWithTasks).toHaveLength(2);
     });
   });
 
