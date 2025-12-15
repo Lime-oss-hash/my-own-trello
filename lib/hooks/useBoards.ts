@@ -187,6 +187,54 @@ export function useBoard(boardId: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId]); // Only watch boardId changes
 
+  /**
+   * Real-time subscription for live collaboration
+   * When any user creates/updates/deletes tasks or columns,
+   * all other users viewing this board see the change instantly
+   */
+  useEffect(() => {
+    if (!supabase || !boardId) return;
+
+    // Create a channel for this board's real-time updates
+    const channel = supabase
+      .channel(`board-${boardId}-realtime`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // Listen to INSERT, UPDATE, DELETE
+          schema: "public",
+          table: "tasks",
+        },
+        (payload) => {
+          console.log("Real-time task change:", payload.eventType);
+          // Refresh the board data when tasks change
+          loadBoard();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "columns",
+        },
+        (payload) => {
+          console.log("Real-time column change:", payload.eventType);
+          // Refresh the board data when columns change
+          loadBoard();
+        }
+      )
+      .subscribe((status) => {
+        console.log("Real-time subscription status:", status);
+      });
+
+    // Cleanup: unsubscribe when component unmounts or boardId changes
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boardId, supabase]);
+
   async function loadBoard() {
     if (!boardId || !supabase) return;
 
