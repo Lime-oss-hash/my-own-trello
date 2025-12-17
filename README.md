@@ -459,6 +459,17 @@ Board View → Edit Board Icon → Update Details → Save Changes
 | `npm run start` | Start production server               |
 | `npm run lint`  | Run ESLint to check code quality      |
 
+## 🧪 Testing
+
+This project includes comprehensive test coverage using **Vitest** for unit/component tests and **Playwright** for E2E browser testing.
+
+| Command                 | Description                               |
+| ----------------------- | ----------------------------------------- |
+| `npm run test`          | Run unit tests with Vitest                |
+| `npm run test:e2e`      | Execute E2E browser tests with Playwright |
+| `npm run test:coverage` | Generate test coverage report             |
+| `npm run test:watch`    | Run tests in watch mode                   |
+
 ## 📦 Dependencies
 
 ### Core Dependencies
