@@ -74,11 +74,11 @@ jobs:
         run: npx vitest run tests/integration || true
 
   # E2E tests - require secrets to be configured
+  # Note: These tests will gracefully fail if secrets aren't configured
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
     continue-on-error: true # Don't block CI until E2E is fully configured
-    if: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
