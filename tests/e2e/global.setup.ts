@@ -1,5 +1,5 @@
 import { clerkSetup } from "@clerk/testing/playwright";
-import { test as setup, expect } from "@playwright/test";
+import { test as setup } from "@playwright/test";
 
 /**
  * Global Setup for Clerk Authentication
@@ -45,8 +45,8 @@ setup("authenticate", async ({ page }) => {
     .or(page.getByLabel(/email/i));
   await emailInput.fill(process.env.E2E_CLERK_USER_EMAIL || "");
 
-  // Click continue
-  const continueButton = page.getByRole("button", { name: /continue/i });
+  // Click continue (use Clerk's primary form button class to avoid matching social buttons)
+  const continueButton = page.locator(".cl-formButtonPrimary");
   await continueButton.click();
 
   // Wait for password step
@@ -58,8 +58,8 @@ setup("authenticate", async ({ page }) => {
     .or(page.locator('input[type="password"]').first());
   await passwordInput.fill(process.env.E2E_CLERK_USER_PASSWORD || "");
 
-  // Click sign in / continue
-  const signInSubmit = page.getByRole("button", { name: /continue|sign in/i });
+  // Click sign in (use Clerk's primary form button class)
+  const signInSubmit = page.locator(".cl-formButtonPrimary");
   await signInSubmit.click();
 
   // Wait for redirect to dashboard
