@@ -185,22 +185,25 @@ test.describe("Accessibility Audits", () => {
       }
     });
 
+    // Test focus trapping in the Create Board dialog (requires auth)
     test("dialogs should trap focus", async ({ page }) => {
-      await page.goto("/");
+      // Go to dashboard (authenticated via storage state)
+      await page.goto("/dashboard");
+      await page.waitForTimeout(1000);
 
-      // Find a button that opens a dialog
-      const dialogTrigger = page
-        .getByRole("button", { name: /sign|start|get/i })
+      // Click Create Board button
+      const createButton = page
+        .getByRole("button", { name: /create|new board/i })
         .first();
 
-      if (await dialogTrigger.isVisible()) {
-        await dialogTrigger.click();
+      if (await createButton.isVisible()) {
+        await createButton.click();
 
         // Wait for dialog
         const dialog = page.getByRole("dialog");
 
         if (await dialog.isVisible()) {
-          // Tab through dialog
+          // Tab through dialog elements
           await page.keyboard.press("Tab");
           await page.keyboard.press("Tab");
           await page.keyboard.press("Tab");

@@ -56,7 +56,6 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    continue-on-error: true # Don't block CI on integration test failures
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -78,7 +77,6 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    continue-on-error: true # Don't block CI until E2E is fully configured
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

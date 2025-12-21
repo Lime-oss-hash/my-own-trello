@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
-    "@clerk/testing": "^1.13.23",
+    "@clerk/testing": "^1.13.26",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",

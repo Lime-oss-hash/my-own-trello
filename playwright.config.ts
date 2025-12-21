@@ -21,28 +21,64 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
+  // Threshold for visual comparisons
+  expect: {
+    toHaveScreenshot: { maxDiffPixels: 100 },
+  },
 
   projects: [
+    // Setup project - runs first to authenticate
+    {
+      name: "setup",
+      testMatch: /global\.setup\.ts/,
+    },
+    // Chromium without auth - for testing public pages and unauthenticated flows
+    {
+      name: "chromium-no-auth",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: /auth\.spec\.ts|accessibility\.spec\.ts|visual\.spec\.ts/,
+    },
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "playwright/.clerk/user.json",
+      },
+      dependencies: ["setup"],
+      testIgnore: /auth\.spec\.ts/, // Don't run auth tests with auth state
     },
     {
       name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      use: {
+        ...devices["Desktop Firefox"],
+        storageState: "playwright/.clerk/user.json",
+      },
+      dependencies: ["setup"],
     },
     {
       name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      use: {
+        ...devices["Desktop Safari"],
+        storageState: "playwright/.clerk/user.json",
+      },
+      dependencies: ["setup"],
     },
     // Mobile viewports
     {
       name: "mobile-chrome",
-      use: { ...devices["Pixel 5"] },
+      use: {
+        ...devices["Pixel 5"],
+        storageState: "playwright/.clerk/user.json",
+      },
+      dependencies: ["setup"],
     },
     {
       name: "mobile-safari",
-      use: { ...devices["iPhone 12"] },
+      use: {
+        ...devices["iPhone 12"],
+        storageState: "playwright/.clerk/user.json",
+      },
+      dependencies: ["setup"],
     },
   ],
 
